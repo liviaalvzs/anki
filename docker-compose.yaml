@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: anki_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: anki_user
+      POSTGRES_PASSWORD: anki_password
+      POSTGRES_DB: anki_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  api:
+      build:
+        context: backend  
+        dockerfile: Dockerfile  
+      container_name: anki_api
+      restart: always
+      depends_on:
+        - db
+      environment:
+        DATABASE_URL: postgresql://anki_user:anki_password@db:5432/anki_db
+      ports:
+        - "8000:8000"
+      volumes:
+        - ./backend:/app  
+      working_dir: /app 
+      command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+volumes:
+  pg_data:
