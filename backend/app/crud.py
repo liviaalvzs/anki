@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from . import models, schemas
 
 def create_block(db: Session, block: schemas.BlockCreate):
@@ -20,3 +21,12 @@ def create_card(db: Session, card: schemas.CardCreate, block_id: int):
 
 def get_cards_by_block(db: Session, block_id: int):
     return db.query(models.Card).filter(models.Card.block_id == block_id).all()
+
+def delete_card(db: Session, card_id: int):
+    card = db.query(models.Card).filter(models.Card.id == card_id).first()
+    if not card:
+        raise HTTPException(status_code=404, detail="Card Not Found.")
+    
+    db.delete(card)
+    db.commit()
+    return {"message": "Card Deleted!"}
